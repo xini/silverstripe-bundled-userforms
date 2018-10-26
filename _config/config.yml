@@ -1,0 +1,17 @@
+---
+Name: innoweb-bundled-userforms
+---
+SilverStripe\UserForms\Model\UserDefinedForm:
+  block_default_userforms_js: true
+  block_default_userforms_css: true
+SilverStripe\UserForms\Control\UserDefinedFormController:
+  extensions:
+    - Innoweb\BundledUserForms\Extensions\UserDefinedFormControllerExtension
+
+---
+Only:
+  moduleexists: dnadesign/silverstripe-elemental-userforms
+---
+DNADesign\ElementalUserForms\Model\ElementForm:
+  block_default_userforms_js: true
+  block_default_userforms_css: true

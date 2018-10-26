@@ -1,0 +1,22 @@
+{
+	"name": "innoweb/silverstripe-bundled-userforms",
+	"description": "Bundles the requirements for UserForms using the requirements-resolver module.",
+	"type": "silverstripe-vendormodule",
+	"license": "BSD-3-Clause",
+	"keywords": ["silverstripe", "requirements", "userforms"],
+	"authors": [{
+		"name": "Florian Thoma",
+		"homepage": "http://www.innoweb.com.au"
+	}],
+	"require": {
+        "silverstripe/cms": "^4.2.1",
+        "silverstripe/userforms": "~5.0",
+        "innoweb/silverstripe-requirements-resolver": "^1.0",
+        "silverstripe/vendor-plugin": "^1"
+	},
+	"autoload": {
+		"psr-4": {
+			"Innoweb\\BundledUserForms\\": "src/"
+		}
+	}
+}
