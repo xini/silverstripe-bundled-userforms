@@ -24,6 +24,8 @@ class UserDefinedFormControllerExtension extends Extension
 
         $resolverClass = 'Innoweb\RequirementsResolver\RequirementsResolver';
         $resolverExists = ClassInfo::exists($resolverClass);
+        
+        $deferScripts = !$this->owner->hasConditionalJavascript();
 
         $jqueryPath = '//code.jquery.com/jquery-3.3.1.min.js';
         if ($resolverExists) {
@@ -32,7 +34,11 @@ class UserDefinedFormControllerExtension extends Extension
                 $jqueryPath = $resolvedjQueryPath;
             }
         }
-        Requirements::javascript($jqueryPath);
+        if ($deferScripts) {
+            Requirements::javascript($jqueryPath, ['defer' => true]);
+        } else {
+            Requirements::javascript($jqueryPath);
+        }
 
         $jqueryValidatePath = $userFormsModule->getResource('client/thirdparty/jquery-validate/jquery.validate.min.js')->getRelativePath();
         if ($resolverExists) {
@@ -42,7 +48,11 @@ class UserDefinedFormControllerExtension extends Extension
             }
         }
         if (isset($resolvedValidatePath) && $resolvedValidatePath) {
-            Requirements::javascript($resolvedValidatePath);
+            if ($deferScripts) {
+                Requirements::javascript($resolvedValidatePath, ['defer' => true]);
+            } else {
+                Requirements::javascript($resolvedValidatePath);
+            }
         } else {
             $jsBundle[] = $jqueryValidatePath;
         }
@@ -75,10 +85,18 @@ class UserDefinedFormControllerExtension extends Extension
             $jsBundle[] = $userFormsModule->getResource('client/thirdparty/jquery.are-you-sure/jquery.are-you-sure.js')->getRelativePath();
         }
 
-        Requirements::combine_files(
-            'bundled-userforms.js',
-            $jsBundle
-        );
+        if ($deferScripts) {
+            Requirements::combine_files(
+                'bundled-userforms.js',
+                $jsBundle,
+                ['defer' => $deferScripts]
+            );
+        } else {
+            Requirements::combine_files(
+                'bundled-userforms.js',
+                $jsBundle
+            );
+        }
     }
 
     public function getUserFormsValidatei18nPaths()
@@ -107,4 +125,24 @@ class UserDefinedFormControllerExtension extends Extension
 
         return $paths;
     }
+    
+    public function hasConditionalJavascript()
+    {
+        $form = $this->owner->data();
+        if (!$form) {
+            return false;
+        }
+        $formFields = $form->Fields();
+        
+        if ($formFields) {
+            /** @var EditableFormField $field */
+            foreach ($formFields as $field) {
+                if ($field->formatDisplayRules()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
 }
