@@ -24,10 +24,10 @@ class UserDefinedFormControllerExtension extends Extension
 
         $resolverClass = 'Innoweb\RequirementsResolver\RequirementsResolver';
         $resolverExists = ClassInfo::exists($resolverClass);
-        
+
         $deferScripts = !$this->owner->hasConditionalJavascript();
 
-        $jqueryPath = '//code.jquery.com/jquery-3.3.1.min.js';
+        $jqueryPath = '//code.jquery.com/jquery-3.6.0.min.js';
         if ($resolverExists) {
             $resolvedjQueryPath = $resolverClass::get('jquery');
             if ($resolvedjQueryPath) {
@@ -40,7 +40,7 @@ class UserDefinedFormControllerExtension extends Extension
             Requirements::javascript($jqueryPath);
         }
 
-        $jqueryValidatePath = $userFormsModule->getResource('client/thirdparty/jquery-validate/jquery.validate.min.js')->getRelativePath();
+        $jqueryValidatePath = $userFormsModule->getResource('client/dist/js/jquery-validation/jquery.validate.min.js')->getRelativePath();
         if ($resolverExists) {
             $resolvedValidatePath = $resolverClass::get('jquery-validate');
             if ($resolvedValidatePath) {
@@ -82,7 +82,7 @@ class UserDefinedFormControllerExtension extends Extension
 
         // Is not minified - 6kb
         if ($this->owner->data()->config()->get('enable_are_you_sure')) {
-            $jsBundle[] = $userFormsModule->getResource('client/thirdparty/jquery.are-you-sure/jquery.are-you-sure.js')->getRelativePath();
+            $jsBundle[] = $userFormsModule->getResource('client/dist/js/jquery.are-you-sure/jquery.are-you-sure.js')->getRelativePath();
         }
 
         if ($deferScripts) {
@@ -125,7 +125,7 @@ class UserDefinedFormControllerExtension extends Extension
 
         return $paths;
     }
-    
+
     public function hasConditionalJavascript()
     {
         $form = $this->owner->data();
@@ -133,7 +133,7 @@ class UserDefinedFormControllerExtension extends Extension
             return false;
         }
         $formFields = $form->Fields();
-        
+
         if ($formFields) {
             /** @var EditableFormField $field */
             foreach ($formFields as $field) {
@@ -144,5 +144,5 @@ class UserDefinedFormControllerExtension extends Extension
         }
         return false;
     }
-    
+
 }
