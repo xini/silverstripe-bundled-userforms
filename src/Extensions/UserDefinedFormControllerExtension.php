@@ -61,29 +61,61 @@ class UserDefinedFormControllerExtension extends Extension
         $adminModule = ModuleLoader::getModule('silverstripe/admin');
         $jsBundle[] = $adminModule->getResource('client/dist/js/i18n.js')->getRelativePath();
 
-        // offers a method to add alternative lang files instead of hard-coded en/US/GB
+        // offers a method to add alternative userforms lang files
         if ($this->owner->hasMethod('addBundlei18nPaths')) {
             $jsBundle = $this->owner->addBundlei18nPaths($jsBundle);
         } else {
+            $candidates = [
+                'en',
+                'en_US',
+                i18n::getData()->langFromLocale(i18n::config()->get('default_locale')),
+                i18n::config()->get('default_locale'),
+                i18n::getData()->langFromLocale(i18n::get_locale()),
+                i18n::get_locale(),
+            ];
 
-            // Are not minified <1kb each
-            $jsBundle[] = $userFormsModule->getResource('client/lang/en.js')->getRelativePath();
-            $jsBundle[] = $userFormsModule->getResource('client/lang/en_US.js')->getRelativePath();
-            $jsBundle[] = $userFormsModule->getResource('client/lang/en_GB.js')->getRelativePath();
+            $candidates = array_map(
+                function ($candidate) {
+                    return $candidate . '.js';
+                },
+                $candidates ?? []
+            );
+
+            foreach ($candidates as $candidate) {
+                if (($resource = $userFormsModule->getResource('client/lang/' . $candidate)) && $resource->exists()) {
+                    $jsBundle[] = $resource->getRelativePath();
+                }
+            }
         }
 
-        // Is minified
+        // add base userforms script
         $jsBundle[] = $userFormsModule->getResource('client/dist/js/userforms.js')->getRelativePath();
 
-        $validatei18nPaths = $this->owner->getUserFormsValidatei18nPaths();
-        if ($validatei18nPaths && !empty($validatei18nPaths)) {
-            $jsBundle = array_merge($jsBundle, $validatei18nPaths);
+        // load jquery validate localisation files
+        if (isset($resolvedValidatePath) && $resolvedValidatePath) {
+            $validatei18nPaths = $this->owner->getUserFormsValidatei18nCandidatePaths($resolvedValidatePath);
+            if ($validatei18nPaths && !empty($validatei18nPaths)) {
+                foreach ($validatei18nPaths as $path) {
+                    if ($deferScripts) {
+                        Requirements::javascript($path, ['defer' => true]);
+                    } else {
+                        Requirements::javascript($path);
+                    }
+                }
+            }
+        } else {
+            $validatei18nPaths = $this->owner->getUserFormsValidatei18nCandidatePaths($resolvedValidatePath);
+            if ($validatei18nPaths && !empty($validatei18nPaths)) {
+                $jsBundle = array_merge($jsBundle, $validatei18nPaths);
+            }
         }
 
-        // Is not minified - 6kb
+        // add are_you_sure script
         if ($this->owner->data()->config()->get('enable_are_you_sure')) {
             $jsBundle[] = $userFormsModule->getResource('client/dist/js/jquery.are-you-sure/jquery.are-you-sure.js')->getRelativePath();
         }
+
+        $jsBundle = array_unique($jsBundle);
 
         if ($deferScripts) {
             Requirements::combine_files(
@@ -99,10 +131,8 @@ class UserDefinedFormControllerExtension extends Extension
         }
     }
 
-    public function getUserFormsValidatei18nPaths()
+    public function getUserFormsValidatei18nCandidatePaths($externalBaseScript = null)
     {
-        $module = ModuleLoader::getModule('silverstripe/userforms');
-
         $candidates = [
             i18n::getData()->langFromLocale(i18n::config()->get('default_locale')),
             i18n::config()->get('default_locale'),
@@ -112,18 +142,29 @@ class UserDefinedFormControllerExtension extends Extension
 
         $paths = [];
 
+        $module = ModuleLoader::getModule('silverstripe/userforms');
+
+        if ($externalBaseScript) {
+            $externalBaseScript = substr($externalBaseScript, 0, strrpos( $externalBaseScript, '/'));
+        }
+
         foreach ($candidates as $candidate) {
             foreach (['messages', 'methods'] as $candidateType) {
-                $localisationCandidate = "client/thirdparty/jquery-validate/localization/{$candidateType}_{$candidate}.min.js";
+                if ($externalBaseScript) {
+                    $paths[] = $externalBaseScript . "/localization/{$candidateType}_{$candidate}.min.js";
+                } else {
+                    $localisationCandidate = "client/dist/js/jquery-validation/localization/{$candidateType}_{$candidate}.min.js";
 
-                $resource = $module->getResource($localisationCandidate);
-                if ($resource->exists()) {
-                    $paths[] = $resource->getRelativePath();
+                    $resource = $module->getResource($localisationCandidate);
+                    if ($resource->exists()) {
+                        $paths[] = $resource->getRelativePath();
+                    }
                 }
             }
         }
 
         return $paths;
+
     }
 
     public function hasConditionalJavascript()
