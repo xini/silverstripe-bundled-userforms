@@ -8,7 +8,9 @@ It also supports the use of forms using the [elementa userforms module] (https:/
 
 ## Requirements
 
-SilverStripe CMS 4.2, see [composer.json](composer.json)
+SilverStripe CMS 5, see [composer.json](composer.json)
+
+Note: this version is compatible with Silverstripe 5. For Silverstripe 4, please see the [1 release line](https://github.com/xini/silverstripe-bundled-userforms/tree/1).
 
 ## Installation
 
