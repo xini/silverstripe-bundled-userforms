@@ -14,7 +14,7 @@ class UserDefinedFormControllerExtension extends Extension
     {
         $blockJS = $this->owner->data()->config()->get('block_default_userforms_js');
 
-        if (!$blockJS) {
+        if ($blockJS) {
             return;
         }
 
