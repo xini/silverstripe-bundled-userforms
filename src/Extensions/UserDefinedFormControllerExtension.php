@@ -22,42 +22,15 @@ class UserDefinedFormControllerExtension extends Extension
 
         $userFormsModule = ModuleLoader::getModule('silverstripe/userforms');
 
-        $resolverClass = 'Innoweb\RequirementsResolver\RequirementsResolver';
-        $resolverExists = ClassInfo::exists($resolverClass);
-
         $deferScripts = !$this->owner->hasConditionalJavascript();
 
-        $jqueryPath = '//code.jquery.com/jquery-3.6.0.min.js';
-        if ($resolverExists) {
-            $resolvedjQueryPath = $resolverClass::get('jquery');
-            if ($resolvedjQueryPath) {
-                $jqueryPath = $resolvedjQueryPath;
-            }
-        }
-        if ($deferScripts) {
-            Requirements::javascript($jqueryPath, ['defer' => true]);
-        } else {
-            Requirements::javascript($jqueryPath);
-        }
+        // add jquery
+        $jsBundle[] = $userFormsModule->getResource('client/dist/js/jquery.min.js')->getRelativePath();
 
-        $jqueryValidatePath = $userFormsModule->getResource('client/dist/js/jquery-validation/jquery.validate.min.js')->getRelativePath();
-        if ($resolverExists) {
-            $resolvedValidatePath = $resolverClass::get('jquery-validate');
-            if ($resolvedValidatePath) {
-                $jqueryValidatePath = $resolvedValidatePath;
-            }
-        }
-        if (isset($resolvedValidatePath) && $resolvedValidatePath) {
-            if ($deferScripts) {
-                Requirements::javascript($resolvedValidatePath, ['defer' => true]);
-            } else {
-                Requirements::javascript($resolvedValidatePath);
-            }
-        } else {
-            $jsBundle[] = $jqueryValidatePath;
-        }
+        // add jquery validate
+        $jsBundle[] = $userFormsModule->getResource('client/dist/js/jquery-validation/jquery.validate.min.js')->getRelativePath();
 
-        // Is minified
+        // add i18n script
         $adminModule = ModuleLoader::getModule('silverstripe/admin');
         $jsBundle[] = $adminModule->getResource('client/dist/js/i18n.js')->getRelativePath();
 
@@ -65,6 +38,7 @@ class UserDefinedFormControllerExtension extends Extension
         if ($this->owner->hasMethod('addBundlei18nPaths')) {
             $jsBundle = $this->owner->addBundlei18nPaths($jsBundle);
         } else {
+            // add language files
             $candidates = [
                 'en',
                 'en_US',
@@ -91,23 +65,10 @@ class UserDefinedFormControllerExtension extends Extension
         // add base userforms script
         $jsBundle[] = $userFormsModule->getResource('client/dist/js/userforms.js')->getRelativePath();
 
-        // load jquery validate localisation files
-        if (isset($resolvedValidatePath) && $resolvedValidatePath) {
-            $validatei18nPaths = $this->owner->getUserFormsValidatei18nCandidatePaths($resolvedValidatePath);
-            if ($validatei18nPaths && !empty($validatei18nPaths)) {
-                foreach ($validatei18nPaths as $path) {
-                    if ($deferScripts) {
-                        Requirements::javascript($path, ['defer' => true]);
-                    } else {
-                        Requirements::javascript($path);
-                    }
-                }
-            }
-        } else {
-            $validatei18nPaths = $this->owner->getUserFormsValidatei18nCandidatePaths($resolvedValidatePath);
-            if ($validatei18nPaths && !empty($validatei18nPaths)) {
-                $jsBundle = array_merge($jsBundle, $validatei18nPaths);
-            }
+        // add jquery validate localisation files
+        $validatei18nPaths = $this->owner->getUserFormsValidatei18nCandidatePaths();
+        if ($validatei18nPaths && !empty($validatei18nPaths)) {
+            $jsBundle = array_merge($jsBundle, $validatei18nPaths);
         }
 
         // add are_you_sure script
@@ -121,7 +82,7 @@ class UserDefinedFormControllerExtension extends Extension
             Requirements::combine_files(
                 'bundled-userforms.js',
                 $jsBundle,
-                ['defer' => $deferScripts]
+                ['defer' => true]
             );
         } else {
             Requirements::combine_files(
@@ -131,7 +92,7 @@ class UserDefinedFormControllerExtension extends Extension
         }
     }
 
-    public function getUserFormsValidatei18nCandidatePaths($externalBaseScript = null)
+    public function getUserFormsValidatei18nCandidatePaths()
     {
         $candidates = [
             i18n::getData()->langFromLocale(i18n::config()->get('default_locale')),
@@ -144,27 +105,17 @@ class UserDefinedFormControllerExtension extends Extension
 
         $module = ModuleLoader::getModule('silverstripe/userforms');
 
-        if ($externalBaseScript) {
-            $externalBaseScript = substr($externalBaseScript, 0, strrpos( $externalBaseScript, '/'));
-        }
-
         foreach ($candidates as $candidate) {
             foreach (['messages', 'methods'] as $candidateType) {
-                if ($externalBaseScript) {
-                    $paths[] = $externalBaseScript . "/localization/{$candidateType}_{$candidate}.min.js";
-                } else {
-                    $localisationCandidate = "client/dist/js/jquery-validation/localization/{$candidateType}_{$candidate}.min.js";
+                $localisationCandidate = "client/dist/js/jquery-validation/localization/{$candidateType}_{$candidate}.min.js";
 
-                    $resource = $module->getResource($localisationCandidate);
-                    if ($resource->exists()) {
-                        $paths[] = $resource->getRelativePath();
-                    }
+                if (($resource = $module->getResource($localisationCandidate)) && $resource->exists()) {
+                    $paths[] = $resource->getRelativePath();
                 }
             }
         }
 
         return $paths;
-
     }
 
     public function hasConditionalJavascript()
@@ -185,5 +136,4 @@ class UserDefinedFormControllerExtension extends Extension
         }
         return false;
     }
-
 }

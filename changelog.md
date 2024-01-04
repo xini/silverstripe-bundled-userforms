@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.0.0]
+
+* remove innoweb/silverstripe-requirements-resolver and bundle js files from userforms build
+
 ## [2.0.0]
 
 * upgrade to Silverstripe 5

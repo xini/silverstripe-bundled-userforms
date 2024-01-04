@@ -2,7 +2,7 @@
 
 ## Overview
 
-Bundles the requirements for UserForms using the [requirements resolver module](https://github.com/xini/silverstripe-requirements-resolver).
+Bundles the Javascript requirements for UserForms into one single script and defers its loading if no conditional Javascript is present for the form.
 
 It also supports the use of forms using the [elementa userforms module] (https://github.com/dnadesign/silverstripe-elemental-userforms).
 
@@ -23,9 +23,14 @@ Then run dev/build.
 
 ## Usage
 
-The module is automatically applied and loads the requirements for UserForms according to the global requirements definition of the requirements resolver module instead of the default ones.
+The module is automatically applied and loads a bundled version of the requirements for UserForms instead of the default ones.
 
-No configuration is required.
+If you want to load the default scripts for a certain `UserForm` class, use the following config:
+
+```yaml
+Your\Custom\UserFormClass:
+  block_default_userforms_js: false
+```
 
 ## License
 

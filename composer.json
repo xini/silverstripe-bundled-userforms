@@ -11,7 +11,6 @@
 	"require": {
         "silverstripe/cms": "^5",
         "silverstripe/userforms": "^6",
-        "innoweb/silverstripe-requirements-resolver": "^2",
         "silverstripe/vendor-plugin": "^2"
 	},
 	"autoload": {
