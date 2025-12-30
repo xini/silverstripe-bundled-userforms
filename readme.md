@@ -8,16 +8,14 @@ It also supports the use of forms using the [elementa userforms module] (https:/
 
 ## Requirements
 
-SilverStripe CMS 5, see [composer.json](composer.json)
-
-Note: this version is compatible with Silverstripe 5. For Silverstripe 4, please see the [1 release line](https://github.com/xini/silverstripe-bundled-userforms/tree/1).
+SilverStripe CMS 6, see [composer.json](composer.json)
 
 ## Installation
 
 Install the module using composer:
 
 ```
-composer require innoweb/silverstripe-bundled-userforms dev-master
+composer require innoweb/silverstripe-bundled-userforms
 ```
 Then run dev/build.
 

@@ -2,7 +2,6 @@
 
 namespace Innoweb\BundledUserForms\Extensions;
 
-use SilverStripe\Core\ClassInfo;
 use SilverStripe\Core\Extension;
 use SilverStripe\Core\Manifest\ModuleLoader;
 use SilverStripe\i18n\i18n;
@@ -12,7 +11,7 @@ class UserDefinedFormControllerExtension extends Extension
 {
     public function onAfterInit()
     {
-        $blockJS = $this->owner->data()->config()->get('block_default_userforms_js');
+        $blockJS = $this->getOwner()->data()->config()->get('block_default_userforms_js');
 
         if (!$blockJS) {
             return;
@@ -22,7 +21,7 @@ class UserDefinedFormControllerExtension extends Extension
 
         $userFormsModule = ModuleLoader::getModule('silverstripe/userforms');
 
-        $deferScripts = !$this->owner->hasConditionalJavascript();
+        $deferScripts = !$this->getOwner()->hasConditionalJavascript();
 
         // add jquery
         $jsBundle[] = $userFormsModule->getResource('client/dist/js/jquery.min.js')->getRelativePath();
@@ -35,8 +34,8 @@ class UserDefinedFormControllerExtension extends Extension
         $jsBundle[] = $adminModule->getResource('client/dist/js/i18n.js')->getRelativePath();
 
         // offers a method to add alternative userforms lang files
-        if ($this->owner->hasMethod('addBundlei18nPaths')) {
-            $jsBundle = $this->owner->addBundlei18nPaths($jsBundle);
+        if ($this->getOwner()->hasMethod('addBundlei18nPaths')) {
+            $jsBundle = $this->getOwner()->addBundlei18nPaths($jsBundle);
         } else {
             // add language files
             $candidates = [
@@ -49,9 +48,7 @@ class UserDefinedFormControllerExtension extends Extension
             ];
 
             $candidates = array_map(
-                function ($candidate) {
-                    return $candidate . '.js';
-                },
+                fn($candidate) => $candidate . '.js',
                 $candidates ?? []
             );
 
@@ -66,13 +63,13 @@ class UserDefinedFormControllerExtension extends Extension
         $jsBundle[] = $userFormsModule->getResource('client/dist/js/userforms.js')->getRelativePath();
 
         // add jquery validate localisation files
-        $validatei18nPaths = $this->owner->getUserFormsValidatei18nCandidatePaths();
+        $validatei18nPaths = $this->getOwner()->getUserFormsValidatei18nCandidatePaths();
         if ($validatei18nPaths && !empty($validatei18nPaths)) {
             $jsBundle = array_merge($jsBundle, $validatei18nPaths);
         }
 
         // add are_you_sure script
-        if ($this->owner->data()->config()->get('enable_are_you_sure')) {
+        if ($this->getOwner()->data()->config()->get('enable_are_you_sure')) {
             $jsBundle[] = $userFormsModule->getResource('client/dist/js/jquery.are-you-sure/jquery.are-you-sure.js')->getRelativePath();
         }
 
@@ -107,7 +104,7 @@ class UserDefinedFormControllerExtension extends Extension
 
         foreach ($candidates as $candidate) {
             foreach (['messages', 'methods'] as $candidateType) {
-                $localisationCandidate = "client/dist/js/jquery-validation/localization/{$candidateType}_{$candidate}.min.js";
+                $localisationCandidate = sprintf('client/dist/js/jquery-validation/localization/%s_%s.min.js', $candidateType, $candidate);
 
                 if (($resource = $module->getResource($localisationCandidate)) && $resource->exists()) {
                     $paths[] = $resource->getRelativePath();
@@ -120,10 +117,11 @@ class UserDefinedFormControllerExtension extends Extension
 
     public function hasConditionalJavascript()
     {
-        $form = $this->owner->data();
+        $form = $this->getOwner()->data();
         if (!$form) {
             return false;
         }
+
         $formFields = $form->Fields();
 
         if ($formFields) {
@@ -134,6 +132,7 @@ class UserDefinedFormControllerExtension extends Extension
                 }
             }
         }
+
         return false;
     }
 }
